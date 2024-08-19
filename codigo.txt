@@ -1,0 +1,166 @@
+
+
+#include <WiFi.h>
+#include <ThingSpeak.h>
+
+// Credenciais da rede Wi-Fi
+
+const char* ssid = "L GUSTAVO";
+const char* password = "robotica";
+WiFiClient client;
+
+
+
+const long CANAL = 261925;
+const char * writeAPIKey = "34Q3BK3KNXKACY46";
+const char * readAPIKey = "H3I5IF3FCOJ6KT7Y";
+const int CAMPO_SOLIC = 1;
+
+// Variáveis para controle
+
+int solic;
+boolean estado_rele;
+int pumpRelayPin = 15;
+int valve1RelayPin = 32;
+int valve2RelayPin = 33;
+int valve2RelayPin = 27;
+const int valve4RelayPin = 14;
+const int valve5RelayPin = 12;
+
+
+unsigned long tempo_atual_sensor = 0;
+int periodo_leitura_sensor = 2000;  
+long tempo_atual_envio  = 0;
+int periodo_envio = 12000;
+
+
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println();
+  Serial.println("Send Sensor´s Data to ThingSpeak Using ESP32");
+  Serial.println();
+  
+  Wi-Fi.mode(Wi-Fi_STA)
+  ThingSpeak.begin(client);
+
+
+
+
+pinMode(rele_bomba, OUTPUT);
+pinMode(rele_valvula_1, OUTPUT);
+pinMode(rele_valvula_2, OUTPUT);
+pinMode(rele_valvula_3, OUTPUT);
+pinMode(rele_valvula_4, OUTPUT);
+pinMode(rele_valvula_5, OUTPUT);
+
+Serial.println("Desativar todas as válvulas + Bomba");
+
+digitalWrite(rele_valvula_1, LOW);
+digitalWrite(rele_valvula_2, LOW);
+digitalWrite(rele_valvula_3, LOW);
+digitalWrite(rele_valvula_4, LOW);
+digitalWrite(rele_valvula_5, LOW);
+digitalWrite(rele_bomba, LOW);
+
+void loop() {
+receber_solicitacao_nuvem();
+   int statusCode = 0;
+
+solicitacao = ThingSpeak.readlongField(CANAL, CAMPO_SOLICITACAO, CHAVE_LEITURA);
+
+statusCode = ThingSpeak.getLastReadStatus;
+if(statusCode == 200){
+  Serial.println("Counter: " + String(solicitacao))
+  } else {
+    Serial.println("Problem reading channel. HTTP error code: " + String(statusCode));
+  }
+    switch (solicitacao) {
+    case 0:
+      digitalWrite(rele_bomba, LOW);
+      break;
+    case 100:
+
+digitalWrite(rele_valvula_1, HIGH);
+digitalWrite(rele_valvula_2, LOW);
+digitalWrite(rele_valvula_3, LOW);
+digitalWrite(rele_valvula_4, LOW);
+digitalWrite(rele_valvula_5, LOW);
+delay(3000);
+digitalWrite(rele_bomba, HIGH);
+      break;
+	case 200;
+digitalWrite(rele_valvula_1, LOW);
+digitalWrite(rele_valvula_2, HIGH);
+digitalWrite(rele_valvula_3, LOW);
+digitalWrite(rele_valvula_4, LOW);
+digitalWrite(rele_valvula_5, LOW);
+delay(3000);
+digitalWrite(rele_bomba, HIGH);
+      break;
+	case 400:
+digitalWrite(rele_valvula_1, LOW);
+digitalWrite(rele_valvula_2, LOW);
+digitalWrite(rele_valvula_3, LOW);
+digitalWrite(rele_valvula_4, HIGH);
+digitalWrite(rele_valvula_5, LOW);
+delay(3000);
+digitalWrite(rele_bomba, HIGH);
+      break;
+	case 500:
+digitalWrite(rele_valvula_1, LOW);
+digitalWrite(rele_valvula_2, LOW);
+digitalWrite(rele_valvula_3, LOW);
+digitalWrite(rele_valvula_4, LOW);
+digitalWrite(rele_valvula_5, HIGH);
+delay(3000);
+digitalWrite(rele_bomba, HIGH);
+      break;
+delay(1000);
+
+void enviar_para_nuvem() {
+  Estado_rele = digitalRead(rele_bomba);
+
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.print("Attempting to connect to minha_rede: ");
+    Serial.println(minha_rede);
+
+    while (WiFi.status() != WL_CONNECTED) {
+      WiFi.begin(minha_rede, senha);
+      Serial.print(".");
+      delay(5000);
+    }
+    Serial.println("\nConnected.");
+  }
+
+Serial.println("\nConnected.");
+}
+
+if (millis() - tempo_atual_envio > periodo_envio) {
+
+  
+  ThingSpeak.setField(2, estado_rele);
+
+  
+  int x = ThingSpeak.writeFields (CANAL, CHAVE_ESCRITA);
+
+  if (x == 200) {      
+    Serial.println("CANAL update successful.");
+  }
+  else {
+    Serial.println("Problem updating CANAL. HTTP error code " + String(x));
+  }
+
+  tempo_atual_envio = millis();
+}
+
+
+
+
+
+}
+
+
+
+
+}
